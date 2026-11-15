@@ -1,0 +1,135 @@
+---
+import Cmd from "./Cmd.astro";
+
+const lanes = [
+  {
+    from: "api",
+    to: "db",
+    both: true,
+    text: "A private network carries traffic between its machines and nothing else.",
+    command: "kiln networks create --name app-net --cidr 10.44.0.0/24",
+  },
+  {
+    from: "app.example.com",
+    to: "api :80",
+    text: "A proxy route sends a domain to a port on one machine.",
+    command: "kiln proxy add --domain app.example.com --machine-id <machine-id> --vm-port 80",
+  },
+  {
+    from: "host :8080",
+    to: "api :80",
+    text: "A port forward maps a port on the host to a port on a machine.",
+    command: "kiln port-forward add --machine-id <machine-id> --host-port 8080 --vm-port 80",
+  },
+  {
+    from: "127.0.0.1:41873",
+    to: "dev :3000",
+    text: "A forward tunnels from your own machine through the guest agent. It needs no ingress rule.",
+    command: "kiln vm forward dev 3000",
+  },
+];
+---
+
+<ul class="lanes">
+  {
+    lanes.map((lane) => (
+      <li>
+        <p class="lane__run">
+          <code>{lane.from}</code>
+          <span class:list={["pipe", lane.both && "pipe--both"]} aria-hidden="true" />
+          <span class="vh">{lane.both ? "both ways with" : "to"}</span>
+          <code>{lane.to}</code>
+        </p>
+        <div class="lane__say">
+          <p>{lane.text}</p>
+          <Cmd line={lane.command} />
+        </div>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .lanes {
+    display: grid;
+    gap: clamp(2rem, 3.6vw, 3.5rem);
+    margin: clamp(3.5rem, 7vw, 7rem) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: grid;
+    grid-template-columns: minmax(0, var(--stem-k)) minmax(0, var(--stem-iln));
+    align-items: start;
+    row-gap: 1rem;
+  }
+
+  .lane__run {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin: 0;
+    padding-right: var(--between);
+  }
+
+  .lane__run code {
+    flex: none;
+    font-size: 1em;
+    font-weight: 600;
+  }
+
+  .lane__run code:first-child {
+    width: 9.6em;
+  }
+
+  .pipe {
+    --head: 1.5rem;
+    flex: 1;
+    min-width: 3rem;
+    height: 2.25rem;
+    background: var(--rib), linear-gradient(180deg, #ffffff, #e6eaf1);
+    clip-path: polygon(
+      0 27%,
+      calc(100% - var(--head)) 27%,
+      calc(100% - var(--head)) 0,
+      100% 50%,
+      calc(100% - var(--head)) 100%,
+      calc(100% - var(--head)) 73%,
+      0 73%
+    );
+  }
+
+  .pipe--both {
+    clip-path: polygon(
+      0 50%,
+      var(--head) 0,
+      var(--head) 27%,
+      calc(100% - var(--head)) 27%,
+      calc(100% - var(--head)) 0,
+      100% 50%,
+      calc(100% - var(--head)) 100%,
+      calc(100% - var(--head)) 73%,
+      var(--head) 73%,
+      var(--head) 100%
+    );
+  }
+
+  .lane__say p {
+    max-width: 30em;
+    margin: 0 0 0.8rem;
+    font-size: 1.1em;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 60em) {
+    li {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .lane__run {
+      padding-right: 0;
+    }
+  }
+</style>

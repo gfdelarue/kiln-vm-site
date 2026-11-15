@@ -1,0 +1,37 @@
+---
+interface Props {
+  text: string;
+  label: string;
+}
+
+const { text, label } = Astro.props;
+---
+
+<pre class="block" tabindex="0" aria-label={label}><code>{text}</code></pre>
+
+<style>
+  .block {
+    max-width: 100%;
+    margin: 0;
+    padding: 1.1em 1.3em;
+    overflow-x: auto;
+    border-radius: 5px;
+    background: #ffffff;
+    box-shadow: var(--label-edge);
+    font-size: 0.72em;
+    line-height: 1.7;
+  }
+
+  .block:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 3px;
+  }
+
+  code {
+    font-size: 1em;
+    font-weight: 450;
+    font-stretch: 80%;
+    font-variation-settings: "wdth" 80;
+    white-space: pre;
+  }
+</style>

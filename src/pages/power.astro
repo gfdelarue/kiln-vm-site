@@ -1,0 +1,73 @@
+---
+import Cmd from "../components/Cmd.astro";
+import PageHeader from "../components/PageHeader.astro";
+import PowerTimeline from "../components/PowerTimeline.astro";
+import Section from "../components/Section.astro";
+import Base from "../layouts/Base.astro";
+
+const path = "/power/";
+---
+
+<Base
+  title="Power | Kiln"
+  description="Every Kiln VM has a power mode. Idle machines stop after a timeout and wake on the next request."
+  path={path}
+>
+  <PageHeader
+    slot="header"
+    path={path}
+    title="Idle machines stop. Use wakes them."
+    lead="Every VM has a power mode. Use means an exec, a terminal, an upload or download, a proxied HTTP request or an open forward."
+  >
+    <div slot="aside" class="stack-cmds">
+      <Cmd line="kiln vm create app --profile ubuntu-docker --power on_demand --idle 10m" />
+      <Cmd line="kiln vm power app --mode warm --idle 15m" />
+    </div>
+  </PageHeader>
+
+  <Section id="s-modes" title="One timeline under each of the four modes.">
+    <PowerTimeline />
+  </Section>
+
+  <Section id="s-wake" title="What a wake looks like.">
+    <div class="quads quads--stems">
+      <div>
+        <h3 class="sub">The request that wakes a VM gets an answer</h3>
+        <p>
+          For a minute after a VM starts, the HTTP proxy retries refused connections until the guest service listens.
+          After that minute a refused connection returns 502 at once.
+        </p>
+      </div>
+      <div>
+        <h3 class="sub">An open forward keeps it awake</h3>
+        <p>
+          Each connection through <code>kiln vm forward</code> wakes the VM when its mode allows that. The VM does not
+          idle-stop while the connection stays open.
+        </p>
+      </div>
+      <div>
+        <h3 class="sub">Opening a terminal starts a stopped VM</h3>
+        <p>
+          <code>kiln vm open</code> starts the VM, waits for the guest agent and attaches. A VM in
+          <code>manual</code> mode is the exception. Start it yourself first.
+        </p>
+      </div>
+      <div>
+        <h3 class="sub">A daemon restart stops every VM</h3>
+        <p>
+          When <code>kilnd</code> shuts down, it stops the VMs that are running. On its next start, VMs in
+          <code>always</code> and <code>warm</code> mode boot again on the same disk.
+        </p>
+      </div>
+    </div>
+    <div class="zones zones--gap">
+      <div class="zones__k">
+        <p class="lead">Read a VM's mode, or change it. The new mode applies to the VM you already have.</p>
+      </div>
+      <div class="zones__iln stack-cmds">
+        <Cmd line="kiln vm power app" />
+        <Cmd line="kiln vm power app --mode manual" />
+      </div>
+    </div>
+  </Section>
+</Base>

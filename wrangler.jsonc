@@ -1,0 +1,16 @@
+{
+  "name": "kiln-vm",
+  "account_id": "b113c797153d234d5849ca67b5216fed",
+  "main": "./worker.js",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "not_found_handling": "404-page"
+  },
+  "routes": [
+    { "pattern": "kiln-vm.com", "custom_domain": true },
+    { "pattern": "www.kiln-vm.com", "custom_domain": true }
+  ]
+}

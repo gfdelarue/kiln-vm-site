@@ -1,0 +1,84 @@
+---
+import Cast from "../components/Cast.astro";
+import Cmd from "../components/Cmd.astro";
+import PageHeader from "../components/PageHeader.astro";
+import Section from "../components/Section.astro";
+import Steps from "../components/Steps.astro";
+import Base from "../layouts/Base.astro";
+
+const path = "/postgres/";
+
+const branch = [
+  {
+    command: "kiln appliance postgres template db fixture-v1 --fingerprint <hash>",
+    text: "Creates the template, or reuses the one that already has this fingerprint.",
+  },
+  {
+    command: "kiln appliance postgres clone db runtime-1 --source fixture-v1",
+    text: "Clones a runtime database and returns its connection details.",
+  },
+  {
+    command: "kiln appliance postgres reset db runtime-1 --source fixture-v1",
+    text: "Puts the clone back to the template's state.",
+  },
+  {
+    command: "kiln appliance postgres drop db runtime-1",
+    text: "Drops a clone you no longer need.",
+  },
+];
+---
+
+<Base
+  title="Postgres | Kiln"
+  description="Kiln runs Postgres 16 as a managed appliance, with templates you clone for each run and reset between tests."
+  path={path}
+>
+  <PageHeader
+    slot="header"
+    path={path}
+    title="Postgres you can clone and reset."
+    lead="Kiln runs Postgres 16 as a managed appliance. Build a template from your fixtures once, then clone a database for each run and reset it between tests."
+  >
+    <Cmd slot="aside" line="kiln appliance postgres clone db runtime-1 --source fixture-v1" />
+  </PageHeader>
+
+  <Section id="s-branch" title="One template, and a clone for every run.">
+    <div class="zones">
+      <div class="zones__k">
+        <Cast />
+        <p class="lead under-cast">
+          You give each template a fingerprint. Ask for the same template with the same fingerprint and Kiln reuses
+          the one it has. A different fingerprint is a conflict, and Kiln keeps the template until you replace it.
+        </p>
+      </div>
+      <div class="zones__iln">
+        <Steps items={branch} ordered />
+      </div>
+    </div>
+  </Section>
+
+  <Section id="s-conn" title="Kiln hands back the connection details.">
+    <div class="zones">
+      <div class="zones__k">
+        <p class="lead">
+          Each operation returns connection details scoped to that database. Your client never builds a URL by hand or
+          runs provider SQL.
+        </p>
+        <p>
+          Output is safe to print by default. Passwords, tokens and credential URLs stay redacted until you pass
+          <code>--show-secrets</code>.
+        </p>
+      </div>
+      <div class="zones__iln stack-cmds">
+        <Cmd line="kiln appliance get db" />
+        <Cmd line="kiln appliance connection db --field runtime_url --show-secrets" />
+      </div>
+    </div>
+  </Section>
+</Base>
+
+<style>
+  .under-cast {
+    margin-top: clamp(2.25rem, 4vw, 3.5rem);
+  }
+</style>

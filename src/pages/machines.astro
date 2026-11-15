@@ -1,0 +1,183 @@
+---
+import Cmd from "../components/Cmd.astro";
+import PageHeader from "../components/PageHeader.astro";
+import Section from "../components/Section.astro";
+import Steps from "../components/Steps.astro";
+import Terms from "../components/Terms.astro";
+import Base from "../layouts/Base.astro";
+
+const path = "/machines/";
+
+const lifecycle = [
+  {
+    command: "kiln vm open dev",
+    text: "Starts the VM if it is stopped, waits for the guest agent and attaches a terminal.",
+  },
+  {
+    command: "kiln vm exec dev -- uname -a",
+    text: "Runs one command. Pipe a file in and Kiln streams it to the command's standard input.",
+  },
+  {
+    command: "kiln vm forward dev 3000",
+    text: "Listens on a free loopback port and tunnels it to port 3000 in the guest.",
+  },
+  {
+    command: "kiln vm stop dev",
+    text: "Asks the guest to sync and power off before Kiln stops the machine.",
+  },
+  {
+    command: "kiln vm start dev",
+    text: "Boots it again on the same disk.",
+  },
+  {
+    command: "kiln vm delete dev",
+    text: "Deletes the VM and its disk. The cached profile image stays.",
+  },
+];
+
+const profiles = [
+  { term: "alpine", text: "Small Linux for smoke tests and light tooling" },
+  { term: "debian", text: "Debian stable" },
+  { term: "ubuntu", text: "Ubuntu LTS" },
+  { term: "kali", text: "Kali rolling, headless" },
+  { term: "ubuntu-docker", text: "Ubuntu with Docker, rsync, SSH, Postgres client tools and build essentials" },
+  { term: "windows11", text: "Windows 11, prepared once from your own ISO" },
+];
+
+const roles = [
+  { term: "builder", text: "A warm Docker build VM with more CPU and memory than the default." },
+  { term: "ci-runner", text: "An always-on Docker VM sized for self-hosted CI runners." },
+  { term: "docker-worker", text: "An on-demand Docker VM for short build and test jobs." },
+];
+
+const rewritten = [
+  {
+    term: "/root/.ssh/authorized_keys",
+    text: "Kiln replaces its own key line and keeps every other line.",
+  },
+  { term: "/etc/hostname", text: "Set to <code>vm-&lt;name&gt;</code>." },
+  { term: "/etc/hosts", text: "Kiln adds missing localhost and hostname entries and keeps the rest." },
+  { term: "/etc/resolv.conf", text: "Replaced with Kiln's guest DNS servers when the host configures any." },
+  {
+    term: "/etc/kiln/private-network.json",
+    text: "Written when the VM is on a private network, removed when it is not.",
+  },
+];
+---
+
+<Base
+  title="Machines | Kiln"
+  description="Kiln persistent VMs have a name, a profile and their own disk, and survive stops, starts and daemon restarts."
+  path={path}
+>
+  <PageHeader
+    slot="header"
+    path={path}
+    title="Named VMs that keep their disk."
+    lead="A persistent VM has a name, a profile and its own writable disk. One command creates it, and it survives stops, starts and restarts of the daemon."
+  >
+    <Cmd slot="aside" line="kiln vm create dev --profile ubuntu-docker --disk 64G --memory-mb 8192 --cpu 4" />
+  </PageHeader>
+
+  <Section id="s-life" title="Open it, use it, stop it.">
+    <Steps items={lifecycle} layout="stems" />
+  </Section>
+
+  <Section id="s-profiles" title="Linux guests boot on Firecracker. Windows 11 boots on QEMU.">
+    <div class="zones">
+      <div class="zones__k">
+        <p class="lead">
+          Kiln builds each profile image once for a given disk size and caches it. Every VM starts as its own writable
+          copy of that image.
+        </p>
+        <p>
+          <code>kiln vm create</code> builds the image when it needs to. Run <code>ensure</code> first if you would rather
+          pay that cost ahead of time.
+        </p>
+        <Cmd line="kiln vm images ensure ubuntu --disk 8G" />
+        <p class="after-cmd">
+          Kiln ships no Windows media or licence keys. You supply the ISO, and Kiln prepares the profile from it once.
+        </p>
+        <Cmd line="kiln profile prepare windows11 --iso /path/to/Win11.iso" />
+      </div>
+      <div class="zones__iln">
+        <Terms items={profiles} columns={2} />
+      </div>
+    </div>
+  </Section>
+
+  <Section tone="slab" id="s-roles" title="A role fills in the shape.">
+    <div class="zones">
+      <div class="zones__k">
+        <p class="lead lead--pitch">
+          A role is an alias for ordinary create flags. It resolves to a profile, CPU, memory, disk and power mode, and
+          any flag you pass overrides it.
+        </p>
+        <div class="stack-cmds">
+          <Cmd line="kiln vm roles" />
+          <Cmd line="kiln vm create bourne-runner --role ci-runner --dry-run" />
+        </div>
+      </div>
+      <div class="zones__iln">
+        <Terms items={roles} tone="slab" />
+      </div>
+    </div>
+  </Section>
+
+  <Section id="s-disk" title="What a stop keeps, and what a start rewrites.">
+    <div class="zones">
+      <div class="zones__k">
+        <p class="lead">
+          Changes inside the VM go to its own root filesystem. They survive <code>kiln vm stop</code>,
+          <code>kiln vm start</code> and restarts of <code>kilnd</code>.
+        </p>
+        <p>
+          Before each boot of a Linux guest, Kiln rewrites five files on that disk and no others. Windows guests get none
+          of these writes.
+        </p>
+        <h3 class="sub headless">These VMs are headless.</h3>
+        <p>
+          They suit shells, installed tools, package state and isolated service testing. Kiln has no GUI desktops, USB
+          passthrough or Wi&#8209;Fi monitor mode, so it does not replace a desktop hypervisor.
+        </p>
+      </div>
+      <div class="zones__iln">
+        <Terms items={rewritten} />
+      </div>
+    </div>
+  </Section>
+
+  <Section id="s-cpu" title="CPU is a time budget.">
+    <div class="zones">
+      <div class="zones__k">
+        <p class="lead">
+          <code>--cpu</code> sets how much CPU time the VM may use. The number of vCPUs the guest sees comes from the profile
+          unless you pass <code>--vcpus</code>.
+        </p>
+        <Cmd line="kiln vm create ci --profile ubuntu-docker --disk 128G --memory-mb 12288 --cpu 6 --vcpus 6" />
+      </div>
+      <div class="zones__iln quads">
+        <div>
+          <h3 class="sub">Share one pool</h3>
+          <p>
+            Set <code>KILN_POOLED_CPU_LIMIT</code> on the host and create guests with <code>--cpu-kind pooled</code>.
+            Each guest can use spare capacity, and one quota caps the pool as a whole.
+          </p>
+        </div>
+        <div>
+          <h3 class="sub">Use a systemd slice</h3>
+          <p>
+            Pass <code>--slice ci.slice</code> and the VM runs under that slice's CPU and memory policy. You define the
+            slice. Kiln only places the VM in it.
+          </p>
+        </div>
+      </div>
+    </div>
+  </Section>
+</Base>
+
+<style>
+  .headless {
+    margin-top: 2.25rem;
+  }
+</style>

@@ -1,0 +1,59 @@
+---
+import PageHeader from "../components/PageHeader.astro";
+import Base from "../layouts/Base.astro";
+import { pages, url } from "../site";
+
+const path = "/404/";
+---
+
+<Base title="Page not found | Kiln" description="This address does not match a page on the Kiln site." path={path}>
+  <PageHeader
+    slot="header"
+    path={path}
+    title="There is no page at this address."
+    lead="The address may be mistyped, or the page may have moved. The site has these pages."
+  >
+    <ul class="found">
+      <li>
+        <a href={url("/")}>Home</a>
+        <p>What Kiln is, and one machine in one command.</p>
+      </li>
+      {
+        pages.map((page) => (
+          <li>
+            <a href={url(page.path)}>{page.name}</a>
+            <p>{page.line}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </PageHeader>
+</Base>
+
+<style>
+  .found {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+    gap: 2rem var(--between);
+    margin: clamp(2.5rem, 5vw, 4.5rem) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .found a {
+    color: #ffffff;
+    font-family: var(--font-display);
+    font-size: 1.5em;
+    text-decoration: none;
+  }
+
+  .found a:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .found p {
+    max-width: 26em;
+    margin: 0.5rem 0 0;
+  }
+</style>

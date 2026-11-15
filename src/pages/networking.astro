@@ -1,0 +1,123 @@
+---
+import Lanes from "../components/Lanes.astro";
+import PageHeader from "../components/PageHeader.astro";
+import Section from "../components/Section.astro";
+import Steps from "../components/Steps.astro";
+import Terms from "../components/Terms.astro";
+import Base from "../layouts/Base.astro";
+
+const path = "/networking/";
+
+const attach = [
+  { command: "kiln networks create --name app-net --cidr 10.44.0.0/24", text: "Creates the network." },
+  {
+    command: "kiln vm stop api",
+    text: "A VM has to be stopped first, because Kiln writes its network configuration to the disk before boot.",
+  },
+  { command: "kiln vm network attach api --network-id <network-id>", text: "Attaches the stopped VM." },
+  {
+    command: "kiln vm start api",
+    text: "After start, <code>kiln vm get api --json</code> includes the VM's <code>private_ip</code>.",
+  },
+];
+
+const exposure = [
+  { term: "Stop", plain: true, text: "Kiln removes the machine's exposure rules from the host." },
+  { term: "Start", plain: true, text: "Kiln puts its saved routes and forwards back." },
+  { term: "Delete", plain: true, text: "Kiln removes the routes and forwards for good." },
+];
+---
+
+<Base
+  title="Networking | Kiln"
+  description="Kiln private networks isolate machine-to-machine traffic. Proxy routes, port forwards and agent tunnels reach services inside."
+  path={path}
+>
+  <PageHeader
+    slot="header"
+    path={path}
+    title="Private networks, and three ways in."
+    lead="Machines talk to each other on a private network. You reach a service inside through a proxy route, a port forward or a tunnel."
+  >
+    <Lanes />
+  </PageHeader>
+
+  <Section id="s-private" title="A private network is closed to everything outside it.">
+    <div class="zones">
+      <div class="zones__k">
+        <p class="lead">
+          Machines on the same network reach each other over private IPs, with nothing exposed on the host. Machines on
+          different networks cannot reach each other.
+        </p>
+        <p>
+          Private networks work for Linux guests on Firecracker. Windows guests cannot join one yet.
+        </p>
+        <h3 class="sub isolated">Some VMs take no ingress at all.</h3>
+        <p>
+          A VM created with <code>--network-policy isolated-web</code> accepts no inbound traffic. Kiln refuses proxy
+          routes and port forwards for it and points you to <code>kiln vm forward</code>, which still works.
+        </p>
+      </div>
+      <div class="zones__iln">
+        <Steps items={attach} ordered />
+      </div>
+    </div>
+  </Section>
+
+  <Section tone="slab" id="s-exposure" title="Routes and forwards follow the machine.">
+    <div class="zones">
+      <div class="zones__k">
+        <Terms items={exposure} layout="beside" tone="slab" />
+      </div>
+      <div class="zones__iln quads">
+        <div>
+          <h3 class="sub">Port forwards serve outside traffic</h3>
+          <p>
+            A forward carries traffic that reaches the host on its real IP or domain. Running
+            <code>curl localhost:8080</code> on the host itself is not supported.
+          </p>
+        </div>
+        <div>
+          <h3 class="sub">Proxy routes get HTTPS with the API</h3>
+          <p>
+            With TLS on, Kiln serves each proxy-route domain over HTTPS and redirects plain HTTP. The domain has to
+            resolve to the same host as the API.
+          </p>
+        </div>
+      </div>
+    </div>
+  </Section>
+
+  <Section id="s-dns" title="Guests resolve DNS through the host.">
+    <div class="zones">
+      <div class="zones__k">
+        <p class="lead">
+          Linux guests send DNS queries to a Kiln proxy on their gateway address. The proxy forwards them to the
+          resolvers the host had when <code>kilnd</code> started.
+        </p>
+      </div>
+      <div class="zones__iln quads">
+        <div>
+          <h3 class="sub">Ready means DNS works</h3>
+          <p>
+            Kiln checks that the guest reaches the proxy over UDP and TCP, and that an outside name resolves, before it
+            calls a VM ready.
+          </p>
+        </div>
+        <div>
+          <h3 class="sub">Or name the servers yourself</h3>
+          <p>
+            Set <code>KILN_GUEST_DNS_SERVERS</code> to a comma-separated list. Kiln skips the proxy and gives guests those
+            servers directly.
+          </p>
+        </div>
+      </div>
+    </div>
+  </Section>
+</Base>
+
+<style>
+  .isolated {
+    margin-top: 2.25rem;
+  }
+</style>

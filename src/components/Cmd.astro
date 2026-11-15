@@ -1,0 +1,44 @@
+---
+interface Props {
+  line: string;
+}
+
+const tokens = Astro.props.line.split(" ");
+const groups: string[] = [];
+
+for (let i = 0; i < tokens.length; i++) {
+  const token = tokens[i];
+  const value = tokens[i + 1];
+  if (token.startsWith("--") && value !== undefined && !value.startsWith("-")) {
+    groups.push(`${token} ${value}`);
+    i++;
+  } else {
+    groups.push(token);
+  }
+}
+---
+
+<code class="cmd">{groups.map((group, i) => <>{i > 0 && " "}<span>{group}</span></>)}</code>
+
+<style>
+  .cmd {
+    display: inline-block;
+    max-width: 100%;
+    padding: 0.7em 1em 0.7em 2.95em;
+    border-radius: 5px;
+    background: #ffffff;
+    box-shadow: var(--label-edge);
+    font-size: 0.72em;
+    font-weight: 450;
+    font-stretch: 80%;
+    font-variation-settings: "wdth" 80;
+    line-height: 1.65;
+    text-indent: -1.95em;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  span {
+    white-space: nowrap;
+  }
+</style>

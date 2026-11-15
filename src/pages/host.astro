@@ -1,0 +1,126 @@
+---
+import Block from "../components/Block.astro";
+import Cmd from "../components/Cmd.astro";
+import PageHeader from "../components/PageHeader.astro";
+import Plate from "../components/Plate.astro";
+import Section from "../components/Section.astro";
+import StatusBand from "../components/StatusBand.astro";
+import Steps from "../components/Steps.astro";
+import Terms from "../components/Terms.astro";
+import Base from "../layouts/Base.astro";
+
+const path = "/host/";
+
+const rating = [
+  { name: "Host", text: "Linux with KVM" },
+  { name: "Linux guests", text: "Firecracker, with a guest kernel" },
+  { name: "Windows guests", text: "libvirt and QEMU, with OVMF and swtpm" },
+  { name: "Also on the host", text: "Docker, iproute2 and iptables" },
+  { name: "Packages", text: "A Debian package that bundles Firecracker and a guest kernel, and NixOS modules" },
+  { name: "CLI", text: "Linux and macOS, on amd64 and arm64" },
+];
+
+const transports = [
+  {
+    term: "Loopback HTTP",
+    plain: true,
+    text: "The default. <code>kilnd</code> listens on <code>127.0.0.1:8080</code>, and only the host itself can reach it.",
+  },
+  {
+    term: "Remote HTTPS",
+    plain: true,
+    text: "Kiln gets a Let's Encrypt certificate for your domain. The domain has to resolve to the host, with ports 80 and 443 open.",
+  },
+  {
+    term: "Remote HTTP",
+    plain: true,
+    text: "Off unless the host and the client both opt in. A VPN or tailnet does not remove either opt&#8209;in.",
+  },
+];
+
+const tls = `KILN_TLS_ENABLED=true
+KILN_TLS_DOMAIN=kiln.example.com
+KILN_ACME_EMAIL=operator@example.com`;
+
+const disk = [
+  { command: "kiln disk usage", text: "Shows what images, machines and caches take up." },
+  { command: "kiln cleanup --dry-run", text: "Lists what a cleanup would delete, and deletes nothing." },
+  {
+    command: "kiln cleanup",
+    text: "Deletes image and machine directories nothing refers to, superseded profile caches and temporary files older than an hour.",
+  },
+];
+
+const metrics = ["kiln node health", "kiln node capacity", "kiln metrics summary", "kiln vm metrics dev"];
+---
+
+<Base
+  title="Host | Kiln"
+  description="What a Kiln host needs, the checks kiln host doctor runs, how the API is reached, and how to keep disk use down."
+  path={path}
+>
+  <PageHeader
+    slot="header"
+    path={path}
+    title="It needs a Linux host with KVM."
+    lead="One command checks the host before you create anything. It reports package and daemon versions, KVM, host tools, Firecracker, the guest kernel, profiles, limits and free capacity, and says how to fix what fails."
+  >
+    <Plate slot="aside" rows={rating} />
+    <div class="first stack-cmds">
+      <Cmd line="kiln host doctor" />
+      <Cmd line="kiln login --api-url http://localhost:8080 --token <token>" />
+    </div>
+  </PageHeader>
+
+  <Section id="s-api" title="Three ways to reach the API.">
+    <div class="zones">
+      <div class="zones__k">
+        <Terms items={transports} />
+      </div>
+      <div class="zones__iln">
+        <p class="lead">To serve the API over HTTPS, set three variables on the host and log in with the domain.</p>
+        <Block text={tls} label="TLS settings for kilnd" />
+        <div class="login">
+          <Cmd line="kiln login --api-url https://kiln.example.com --token <token>" />
+        </div>
+        <p>Every request carries a bearer token, whichever way it arrives.</p>
+      </div>
+    </div>
+  </Section>
+
+  <Section id="s-disk" title="Keep the disk in check.">
+    <div class="zones">
+      <div class="zones__k">
+        <p class="lead">
+          Root filesystems are sparse files, so a 64G disk takes only the space the guest has written. Cached images
+          and old machine directories are what build up.
+        </p>
+        <p>Cleanup never touches Docker images, or anything a machine or image still uses.</p>
+      </div>
+      <div class="zones__iln">
+        <Steps items={disk} />
+      </div>
+    </div>
+    <div class="zones zones--gap">
+      <div class="zones__k">
+        <h3 class="sub">Watch the host.</h3>
+        <p>Four commands report on the node and its machines. They are live snapshots, and Kiln keeps no history.</p>
+      </div>
+      <div class="zones__iln stack-cmds">
+        {metrics.map((line) => <Cmd line={line} />)}
+      </div>
+    </div>
+  </Section>
+
+  <StatusBand />
+</Base>
+
+<style>
+  .first {
+    margin-top: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .login {
+    margin: 1rem 0 1.5rem;
+  }
+</style>
