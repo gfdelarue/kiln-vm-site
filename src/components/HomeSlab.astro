@@ -1,0 +1,138 @@
+---
+import { pages, status, url } from "../site";
+---
+
+<footer class="slab">
+  <div class="slab__in">
+    <nav aria-label="Main">
+      <ul>
+        {
+          pages.map((page) => (
+            <li>
+              <a href={url(page.path)}>
+                <span class="slab__name">{page.name}</span>
+                <span class="slab__line">{page.line}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <p class="slab__status">{status}</p>
+  </div>
+</footer>
+
+<style>
+  .slab {
+    container-type: size;
+    flex: 1 0 0;
+    min-height: 6.5rem;
+    border-top: 1px solid rgb(10 24 56 / 0.25);
+    background: var(--rib), var(--orange-deep);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    font-stretch: 85%;
+    font-variation-settings: "wdth" 85;
+  }
+
+  .slab__in {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem 2rem;
+    height: 100%;
+    padding: 1.5rem var(--gutter) 2rem;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem clamp(1rem, 2.4vw, 2.25rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  a:hover .slab__name {
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.22em;
+  }
+
+  a:focus-visible {
+    outline-color: var(--ink);
+  }
+
+  .slab__line {
+    display: none;
+  }
+
+  .slab__status {
+    order: -1;
+  }
+
+  @container (min-height: 19rem) {
+    .slab__in {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      gap: 0;
+      padding-block: clamp(1.25rem, 5cqh, 2.5rem) clamp(1.25rem, 5cqh, 2rem);
+    }
+
+    ul {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+      align-content: start;
+      gap: 0 2.5rem;
+    }
+
+    li {
+      border-bottom: 1px solid rgb(10 24 56 / 0.28);
+    }
+
+    a {
+      display: block;
+      padding-block: clamp(0.6rem, 2.6cqh, 1.1rem);
+    }
+
+    .slab__name {
+      display: block;
+      font-family: var(--font-display);
+      font-size: clamp(1.25rem, 5.4cqh, 1.875rem);
+      font-weight: 400;
+      font-stretch: 100%;
+      font-variation-settings: normal;
+      letter-spacing: -0.04em;
+      line-height: 1.15;
+    }
+
+    .slab__line {
+      display: block;
+      max-width: 30em;
+      margin-top: 0.3rem;
+      font-weight: 500;
+      line-height: 1.35;
+    }
+
+    .slab__status {
+      order: 0;
+      align-self: end;
+      padding-top: 1rem;
+    }
+  }
+
+  @container (min-height: 19rem) and (max-height: 27rem) {
+    .slab__line {
+      display: none;
+    }
+  }
+</style>

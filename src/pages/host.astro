@@ -1,126 +1,90 @@
 ---
-import Block from "../components/Block.astro";
-import Cmd from "../components/Cmd.astro";
-import PageHeader from "../components/PageHeader.astro";
-import Plate from "../components/Plate.astro";
-import Section from "../components/Section.astro";
-import StatusBand from "../components/StatusBand.astro";
-import Steps from "../components/Steps.astro";
-import Terms from "../components/Terms.astro";
-import Base from "../layouts/Base.astro";
+import Page from "../layouts/Page.astro";
 
-const path = "/host/";
-
-const rating = [
-  { name: "Host", text: "Linux with KVM" },
-  { name: "Linux guests", text: "Firecracker, with a guest kernel" },
-  { name: "Windows guests", text: "libvirt and QEMU, with OVMF and swtpm" },
-  { name: "Also on the host", text: "Docker, iproute2 and iptables" },
-  { name: "Packages", text: "A Debian package that bundles Firecracker and a guest kernel, and NixOS modules" },
-  { name: "CLI", text: "Linux and macOS, on amd64 and arm64" },
-];
-
-const transports = [
-  {
-    term: "Loopback HTTP",
-    plain: true,
-    text: "The default. <code>kilnd</code> listens on <code>127.0.0.1:8080</code>, and only the host itself can reach it.",
-  },
-  {
-    term: "Remote HTTPS",
-    plain: true,
-    text: "Kiln gets a Let's Encrypt certificate for your domain. The domain has to resolve to the host, with ports 80 and 443 open.",
-  },
-  {
-    term: "Remote HTTP",
-    plain: true,
-    text: "Off unless the host and the client both opt in. A VPN or tailnet does not remove either opt&#8209;in.",
-  },
-];
-
-const tls = `KILN_TLS_ENABLED=true
-KILN_TLS_DOMAIN=kiln.example.com
-KILN_ACME_EMAIL=operator@example.com`;
-
-const disk = [
-  { command: "kiln disk usage", text: "Shows what images, machines and caches take up." },
-  { command: "kiln cleanup --dry-run", text: "Lists what a cleanup would delete, and deletes nothing." },
-  {
-    command: "kiln cleanup",
-    text: "Deletes image and machine directories nothing refers to, superseded profile caches and temporary files older than an hour.",
-  },
-];
-
-const metrics = ["kiln node health", "kiln node capacity", "kiln metrics summary", "kiln vm metrics dev"];
+const running = 8;
+const stopped = 4;
 ---
 
-<Base
-  title="Host | Kiln"
-  description="What a Kiln host needs, the checks kiln host doctor runs, how the API is reached, and how to keep disk use down."
-  path={path}
+<Page
+  path="/host/"
+  title="Host | kiln-vm"
+  description="kiln-vm needs one Linux host with KVM on amd64 or arm64. kiln-vm doctor checks the host before you create anything."
 >
-  <PageHeader
-    slot="header"
-    path={path}
-    title="It needs a Linux host with KVM."
-    lead="One command checks the host before you create anything. It reports package and daemon versions, KVM, host tools, Firecracker, the guest kernel, profiles, limits and free capacity, and says how to fix what fails."
-  >
-    <Plate slot="aside" rows={rating} />
-    <div class="first stack-cmds">
-      <Cmd line="kiln host doctor" />
-      <Cmd line="kiln login --api-url http://localhost:8080 --token <token>" />
+  <Fragment slot="open">
+    <div class="say open">
+      <div class="say__lead">
+        <h1 class="say__title">Host</h1>
+      </div>
+      <p class="say__text">
+        kiln-vm is a daemon, <code>kiln-vmd</code>, and a CLI that talks to it. The daemon runs on one Linux machine,
+        keeps its state under <code>/var/lib/kiln-vm</code> and listens on <code>127.0.0.1:5456</code>.
+      </p>
     </div>
-  </PageHeader>
+  </Fragment>
 
-  <Section id="s-api" title="Three ways to reach the API.">
-    <div class="zones">
-      <div class="zones__k">
-        <Terms items={transports} />
+  <section class="plate plate--slab needs">
+    <div class="say">
+      <div class="say__lead">
+        <h2 class="say__title">What it needs</h2>
+        <pre class="cmd">kiln-vm doctor</pre>
       </div>
-      <div class="zones__iln">
-        <p class="lead">To serve the API over HTTPS, set three variables on the host and log in with the domain.</p>
-        <Block text={tls} label="TLS settings for kilnd" />
-        <div class="login">
-          <Cmd line="kiln login --api-url https://kiln.example.com --token <token>" />
-        </div>
-        <p>Every request carries a bearer token, whichever way it arrives.</p>
-      </div>
+      <p class="say__text">
+        A Linux host on amd64 or arm64 with <code>/dev/kvm</code>. <code>doctor</code> checks KVM, Firecracker, the
+        guest kernel and the host tools, and warns when disk or memory is short.
+      </p>
     </div>
-  </Section>
+    <p class="form form--sunk kvm" aria-hidden="true">/dev/kvm</p>
+  </section>
 
-  <Section id="s-disk" title="Keep the disk in check.">
-    <div class="zones">
-      <div class="zones__k">
-        <p class="lead">
-          Root filesystems are sparse files, so a 64G disk takes only the space the guest has written. Cached images
-          and old machine directories are what build up.
-        </p>
-        <p>Cleanup never touches Docker images, or anything a machine or image still uses.</p>
+  <section class="plate plate--panel">
+    <div class="say">
+      <div class="say__lead">
+        <h2 class="say__title">How much it runs</h2>
       </div>
-      <div class="zones__iln">
-        <Steps items={disk} />
-      </div>
+      <p class="say__text">
+        By default a host runs 8 VMs at a time, sharing 8 vCPUs and 8192 MB of memory. Stopped VMs use none of that,
+        so you can keep more than you run.
+      </p>
     </div>
-    <div class="zones zones--gap">
-      <div class="zones__k">
-        <h3 class="sub">Watch the host.</h3>
-        <p>Four commands report on the node and its machines. They are live snapshots, and Kiln keeps no history.</p>
-      </div>
-      <div class="zones__iln stack-cmds">
-        {metrics.map((line) => <Cmd line={line} />)}
-      </div>
+    <div class="rack" aria-hidden="true">
+      {Array.from({ length: running }, () => <span class="rack__on" />)}
+      {Array.from({ length: stopped }, () => <span class="rack__off" />)}
     </div>
-  </Section>
-
-  <StatusBand />
-</Base>
+  </section>
+</Page>
 
 <style>
-  .first {
-    margin-top: clamp(2rem, 4vw, 3.5rem);
+  .open {
+    padding-bottom: clamp(2rem, 4vw, 4rem);
   }
 
-  .login {
-    margin: 1rem 0 1.5rem;
+  .needs {
+    padding-bottom: clamp(2.5rem, 6vw, 6rem);
+  }
+
+  .kvm {
+    --fit: 5.58;
+    --bearing: 0.031em;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .rack {
+    display: flex;
+    gap: clamp(0.375rem, 1.1cqw, 1.25rem);
+    height: clamp(7rem, 24cqw, 26rem);
+  }
+
+  .rack span {
+    flex: 1;
+  }
+
+  .rack__on {
+    background: var(--rib), var(--moulded);
+  }
+
+  .rack__off {
+    background: var(--rib), linear-gradient(180deg, rgb(10 24 56 / 0.2), rgb(10 24 56 / 0.07) 78%);
+    box-shadow: 0 1px 0 #ffffff;
   }
 </style>

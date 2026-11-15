@@ -1,0 +1,165 @@
+.plate {
+  container-type: inline-size;
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: clamp(2.25rem, 4.5vw, 4.5rem);
+  overflow: clip;
+  padding: clamp(1.5rem, 2.4vw, 2.8rem) var(--gutter) 0;
+}
+
+.plate--panel {
+  background: var(--pinstripe), var(--surface);
+}
+
+.plate--slab {
+  background: var(--rib), linear-gradient(180deg, var(--orange-at-crop), var(--orange-deep));
+}
+
+.plate--fill,
+main > .plate:last-child {
+  flex-grow: 1;
+}
+
+.plate--end {
+  padding-bottom: clamp(2.5rem, 5vw, 5rem);
+}
+
+main > .plate,
+main > .plate ~ * {
+  border-top: 1px solid rgb(10 24 56 / 0.22);
+}
+
+.say {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1.25rem 3rem;
+}
+
+.plate > .say {
+  margin-bottom: auto;
+}
+
+.say__lead {
+  display: grid;
+  align-content: start;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.say__title {
+  font-size: clamp(1.25rem, 1.05rem + 0.7vw, 1.75rem);
+  line-height: 1.15;
+}
+
+h1.say__title {
+  font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2.5rem);
+  line-height: 1.05;
+}
+
+.say__text {
+  width: 34.37%;
+  margin: 0;
+  padding-right: max(0px, 34.37% - 27rem);
+  font-weight: 500;
+}
+
+.plate--slab .say__text {
+  font-weight: 600;
+}
+
+.say__text code {
+  white-space: nowrap;
+}
+
+.cmd {
+  margin: 0;
+  font-size: var(--mono);
+  font-weight: 500;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.cmd span {
+  opacity: 0.62;
+}
+
+.form {
+  --fit: 2;
+  --bearing: 0.05em;
+  --scale: 1;
+  display: block;
+  margin: -0.14em -0.06em -0.24em calc(-0.06em - var(--bearing));
+  padding: 0 0.06em 0.24em;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-family: var(--font-display);
+  font-size: calc(100cqw / var(--fit) * var(--scale));
+  font-weight: 400;
+  line-height: 0.89;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+.form--lit {
+  background-image: var(--rib), var(--moulded);
+}
+
+.form--cold {
+  background-image: var(--rib), linear-gradient(180deg, rgb(10 24 56 / 0.2), rgb(10 24 56 / 0.07) 78%);
+  filter: drop-shadow(0 max(1px, 0.011em) 0 #ffffff);
+}
+
+.form--sunk {
+  background-image: var(--rib), linear-gradient(180deg, #c23002, #d93e08 80%);
+  filter: drop-shadow(0 max(1px, 0.011em) 0 rgb(255 158 110 / 0.75));
+}
+
+.form--cut {
+  background-image:
+    linear-gradient(180deg, rgb(10 24 56 / 0.2), transparent 16%),
+    linear-gradient(90deg, rgb(10 24 56 / 0.08) 0 1px, rgb(255 255 255 / 0.6) 1px 3px, transparent 3px),
+    linear-gradient(180deg, #e9edf3, #ffffff);
+  background-size:
+    auto,
+    10px 100%,
+    auto;
+}
+
+@media (min-width: 104em) {
+  .say {
+    font-size: clamp(1rem, 0.5rem + 0.55vw, 1.375rem);
+  }
+
+  .cmd {
+    font-size: 0.78em;
+  }
+}
+
+@media (max-width: 1080px) {
+  .say__text {
+    width: auto;
+    max-width: 27rem;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 44em) {
+  .plate {
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 30em) {
+  .cmd {
+    font-size: 0.75rem;
+    font-stretch: 75%;
+    font-variation-settings: "wdth" 75;
+  }
+}

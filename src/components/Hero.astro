@@ -2,12 +2,12 @@
   <h1 class="kiln__name">Kiln</h1>
   <div class="kiln__copy">
     <div>
-      <p class="kind">Local cloud</p>
+      <p class="kind">Persistent microVMs</p>
       <p class="stack">For Linux hosts with KVM</p>
     </div>
     <p class="kiln__text">
-      A declarative local-cloud provider. Describe VMs, networks, appliances and services once, and Kiln runs their
-      lifecycle on your own hardware.
+      Kiln runs virtual machines that keep their disk between boots. Create one from a profile, run commands in it
+      from the CLI, and let it stop itself when nothing is using it.
     </p>
   </div>
 </header>
@@ -114,6 +114,12 @@
       width: auto;
       max-width: 27rem;
       padding-right: 0;
+    }
+  }
+
+  @media (max-width: 44em) {
+    .kiln {
+      gap: 1.75rem;
     }
   }
 </style>

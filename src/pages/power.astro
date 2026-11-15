@@ -1,73 +1,165 @@
 ---
-import Cmd from "../components/Cmd.astro";
-import PageHeader from "../components/PageHeader.astro";
-import PowerTimeline from "../components/PowerTimeline.astro";
-import Section from "../components/Section.astro";
-import Base from "../layouts/Base.astro";
+import Page from "../layouts/Page.astro";
 
-const path = "/power/";
+type Span = [number, number];
+
+const modes: { name: string; bearing: number; on: Span[]; text: string }[] = [
+  {
+    name: "manual",
+    bearing: 0.063,
+    on: [[24, 58]],
+    text: "Runs between kiln-vm start and kiln-vm stop. A command sent to a stopped VM is refused.",
+  },
+  {
+    name: "on_demand",
+    bearing: 0.047,
+    on: [
+      [9, 27],
+      [41, 60],
+    ],
+    text: "Stopped until a command needs it, and stopped again after ten idle minutes.",
+  },
+  {
+    name: "warm",
+    bearing: 0.031,
+    on: [
+      [0, 18],
+      [41, 60],
+    ],
+    text: "Starts with the daemon, stops when idle, and wakes on the next command.",
+  },
+  {
+    name: "always",
+    bearing: 0.063,
+    on: [[0, 100]],
+    text: "Starts with the daemon and stays on.",
+  },
+];
+
+const bands = (on: Span[], fill: string) => {
+  const stops: string[] = [];
+  let at = 0;
+  for (const [from, to] of on) {
+    if (from > at) stops.push(`transparent ${at}% ${from}%`);
+    stops.push(`${fill} ${from}% ${to}%`);
+    at = to;
+  }
+  if (at < 100) stops.push(`transparent ${at}% 100%`);
+  return `linear-gradient(90deg, ${stops.join(", ")})`;
+};
 ---
 
-<Base
-  title="Power | Kiln"
-  description="Every Kiln VM has a power mode. Idle machines stop after a timeout and wake on the next request."
-  path={path}
+<Page
+  path="/power/"
+  title="Power | kiln-vm"
+  description="A kiln-vm power mode decides whether a command can wake a VM, whether it starts with the daemon, and whether it stops when idle."
 >
-  <PageHeader
-    slot="header"
-    path={path}
-    title="Idle machines stop. Use wakes them."
-    lead="Every VM has a power mode. Use means an exec, a terminal, an upload or download, a proxied HTTP request or an open forward."
-  >
-    <div slot="aside" class="stack-cmds">
-      <Cmd line="kiln vm create app --profile ubuntu-docker --power on_demand --idle 10m" />
-      <Cmd line="kiln vm power app --mode warm --idle 15m" />
+  <Fragment slot="open">
+    <div class="say open">
+      <div class="say__lead">
+        <h1 class="say__title">Power</h1>
+      </div>
+      <p class="say__text">
+        A VM's power mode decides whether a command can wake it, whether it starts with the daemon, and whether it
+        stops after sitting idle. Each band below is one mode over the same stretch of time. Orange is running.
+      </p>
     </div>
-  </PageHeader>
+  </Fragment>
 
-  <Section id="s-modes" title="One timeline under each of the four modes.">
-    <PowerTimeline />
-  </Section>
+  {
+    modes.map((mode) => (
+      <section
+        class="mode"
+        style={`--mask:${bands(mode.on, "#000")};--hot:${bands(mode.on, "#f6f8fb")};--bearing:${mode.bearing}em`}
+      >
+        <h2 class="mode__name">{mode.name}</h2>
+        <p class="mode__text">{mode.text}</p>
+      </section>
+    ))
+  }
 
-  <Section id="s-wake" title="What a wake looks like.">
-    <div class="quads quads--stems">
-      <div>
-        <h3 class="sub">The request that wakes a VM gets an answer</h3>
-        <p>
-          For a minute after a VM starts, the HTTP proxy retries refused connections until the guest service listens.
-          After that minute a refused connection returns 502 at once.
-        </p>
+  <section class="plate plate--panel plate--end">
+    <div class="say">
+      <div class="say__lead">
+        <h2 class="say__title">What counts as use</h2>
+        <pre class="cmd">kiln-vm power dev --mode on_demand --idle 10m</pre>
       </div>
-      <div>
-        <h3 class="sub">An open forward keeps it awake</h3>
-        <p>
-          Each connection through <code>kiln vm forward</code> wakes the VM when its mode allows that. The VM does not
-          idle-stop while the connection stays open.
-        </p>
-      </div>
-      <div>
-        <h3 class="sub">Opening a terminal starts a stopped VM</h3>
-        <p>
-          <code>kiln vm open</code> starts the VM, waits for the guest agent and attaches. A VM in
-          <code>manual</code> mode is the exception. Start it yourself first.
-        </p>
-      </div>
-      <div>
-        <h3 class="sub">A daemon restart stops every VM</h3>
-        <p>
-          When <code>kilnd</code> shuts down, it stops the VMs that are running. On its next start, VMs in
-          <code>always</code> and <code>warm</code> mode boot again on the same disk.
-        </p>
-      </div>
+      <p class="say__text">
+        <code>exec</code>, <code>shell</code>, <code>forward</code>, uploads and downloads wake a VM and restart its
+        idle timer. An open shell or forward keeps it running. Traffic and processes inside the guest don't count, so
+        a VM that only serves requests still stops.
+      </p>
     </div>
-    <div class="zones zones--gap">
-      <div class="zones__k">
-        <p class="lead">Read a VM's mode, or change it. The new mode applies to the VM you already have.</p>
-      </div>
-      <div class="zones__iln stack-cmds">
-        <Cmd line="kiln vm power app" />
-        <Cmd line="kiln vm power app --mode manual" />
-      </div>
-    </div>
-  </Section>
-</Base>
+  </section>
+</Page>
+
+<style>
+  .open {
+    padding-bottom: clamp(2rem, 4vw, 4rem);
+  }
+
+  .mode {
+    --em: calc((100cqw - 2 * var(--gutter)) / 6.715);
+    container-type: inline-size;
+    position: relative;
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    overflow: clip;
+    background: var(--pinstripe), var(--surface);
+  }
+
+  .mode::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--rib), linear-gradient(180deg, var(--orange-at-crop), var(--orange-deep));
+    -webkit-mask-image: var(--mask);
+    mask-image: var(--mask);
+  }
+
+  .mode__text {
+    position: relative;
+    z-index: 1;
+    order: -1;
+    align-self: flex-end;
+    width: calc((100% - 2 * var(--gutter)) * 0.3437);
+    margin: 0 var(--gutter) 0 0;
+    padding: clamp(1.1rem, 1.8vw, 2rem) max(0px, (100% - 2 * var(--gutter)) * 0.3437 - 27rem) 0 0;
+    font-weight: 600;
+  }
+
+  .mode__name {
+    position: relative;
+    margin: 0;
+    padding: 0.2em var(--gutter) 0.3em calc(var(--gutter) - var(--bearing));
+    background-image: var(--rib), var(--hot), var(--moulded);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-size: calc((100cqw - 2 * var(--gutter)) / 6.715);
+    line-height: 0.89;
+    letter-spacing: -0.05em;
+    white-space: nowrap;
+  }
+
+  @media (min-width: 104em) {
+    .mode__text {
+      font-size: clamp(1rem, 0.5rem + 0.55vw, 1.375rem);
+    }
+  }
+
+  @media (max-width: 1080px) {
+    .mode__text {
+      align-self: stretch;
+      width: auto;
+      margin: 0;
+      padding: 1.1rem max(var(--gutter), 100% - var(--gutter) - 27rem) 1.2rem var(--gutter);
+      background: var(--pinstripe), var(--surface);
+    }
+
+    .mode__name {
+      padding-top: 0.26em;
+    }
+  }
+</style>

@@ -1,38 +1,32 @@
 ---
 import "../styles/global.css";
-import NextPage from "../components/NextPage.astro";
-import SiteFooter from "../components/SiteFooter.astro";
 import { url } from "../site";
 
 interface Props {
   title: string;
   description: string;
-  path: string;
+  fit?: boolean;
 }
 
-const { title, description, path } = Astro.props;
+const { title, description, fit = false } = Astro.props;
 const fonts =
   "https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=Martian+Mono:wdth,wght@75..112.5,300..700&family=Michroma&display=swap";
 ---
 
 <!doctype html>
-<html lang="en" class={path === "/" ? "fit" : undefined}>
+<html lang="en" class={fit ? "fit" : undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta name="theme-color" content="#ea450c" />
     <link rel="icon" href={url("/favicon.svg")} type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href={fonts} />
   </head>
   <body>
-    <slot name="header" />
-    <main>
-      <slot />
-    </main>
-    <NextPage path={path} />
-    <SiteFooter path={path} />
+    <slot />
   </body>
 </html>

@@ -1,0 +1,38 @@
+---
+import "../styles/plates.css";
+import SiteFooter from "../components/SiteFooter.astro";
+import TopBar from "../components/TopBar.astro";
+import Base from "./Base.astro";
+
+interface Props {
+  path: string;
+  title: string;
+  description: string;
+}
+
+const { path, title, description } = Astro.props;
+const solo = !Astro.slots.has("default");
+---
+
+<Base title={title} description={description}>
+  <header class:list={["plate", "plate--panel", solo && "plate--fill"]}>
+    <TopBar path={path} />
+    <slot name="open" />
+  </header>
+  {
+    !solo && (
+      <main>
+        <slot />
+      </main>
+    )
+  }
+  <SiteFooter path={path} />
+</Base>
+
+<style>
+  main {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+  }
+</style>

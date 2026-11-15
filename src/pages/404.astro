@@ -1,59 +1,22 @@
 ---
-import PageHeader from "../components/PageHeader.astro";
-import Base from "../layouts/Base.astro";
-import { pages, url } from "../site";
-
-const path = "/404/";
+import Page from "../layouts/Page.astro";
 ---
 
-<Base title="Page not found | Kiln" description="This address does not match a page on the Kiln site." path={path}>
-  <PageHeader
-    slot="header"
-    path={path}
-    title="There is no page at this address."
-    lead="The address may be mistyped, or the page may have moved. The site has these pages."
-  >
-    <ul class="found">
-      <li>
-        <a href={url("/")}>Home</a>
-        <p>What Kiln is, and one machine in one command.</p>
-      </li>
-      {
-        pages.map((page) => (
-          <li>
-            <a href={url(page.path)}>{page.name}</a>
-            <p>{page.line}</p>
-          </li>
-        ))
-      }
-    </ul>
-  </PageHeader>
-</Base>
+<Page path="/404/" title="Page not found | kiln-vm" description="This address does not match a page on the kiln-vm site.">
+  <Fragment slot="open">
+    <div class="say">
+      <div class="say__lead">
+        <h1 class="say__title">Nothing here</h1>
+      </div>
+      <p class="say__text">No page lives at this address. The menu above has every page on the site.</p>
+    </div>
+    <p class="form form--cold missing" aria-hidden="true">404</p>
+  </Fragment>
+</Page>
 
 <style>
-  .found {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
-    gap: 2rem var(--between);
-    margin: clamp(2.5rem, 5vw, 4.5rem) 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .found a {
-    color: #ffffff;
-    font-family: var(--font-display);
-    font-size: 1.5em;
-    text-decoration: none;
-  }
-
-  .found a:hover {
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
-  }
-
-  .found p {
-    max-width: 26em;
-    margin: 0.5rem 0 0;
+  .missing {
+    --fit: 2.726;
+    --bearing: 0.063em;
   }
 </style>
