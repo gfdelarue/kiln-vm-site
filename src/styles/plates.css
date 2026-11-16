@@ -154,6 +154,17 @@
   filter: url(#cold);
 }
 
+.form--flip {
+  margin-top: -0.24em;
+  margin-bottom: -0.14em;
+  transform: scaleY(-1);
+}
+
+.form--flip.form--pressed {
+  background-image: var(--rib), linear-gradient(0deg, #c93403, #d93f08);
+  filter: url(#pressed-flip);
+}
+
 @media (min-width: 104em) {
   .say,
   .notes {
