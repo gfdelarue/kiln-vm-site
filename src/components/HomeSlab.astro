@@ -7,8 +7,8 @@ import { pages, url } from "../site";
     <nav aria-label="Main">
       <ul>
         {
-          pages.map((page, index) => (
-            <li style={`--order: ${index}`}>
+          pages.map((page) => (
+            <li>
               <a href={url(page.path)}>
                 <span class="slab__name">{page.name}</span>
                 <span class="slab__line">{page.line}</span>
@@ -19,36 +19,124 @@ import { pages, url } from "../site";
       </ul>
     </nav>
   </div>
+  <div class="slab__in slab__ghost" aria-hidden="true">
+    <div>
+      <ul>
+        {
+          pages.map((page) => (
+            <li>
+              <span class="slab__name">{page.name}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
 </footer>
 
 <script>
-  const list = document.querySelector<HTMLElement>(".slab ul");
+  const slab = document.querySelector<HTMLElement>(".slab");
+  const ghost = slab?.querySelector<HTMLElement>(".slab__ghost");
+  const names = [...(ghost?.querySelectorAll<HTMLElement>(".slab__name") ?? [])];
+  const links = [...(slab?.querySelectorAll<HTMLAnchorElement>("a") ?? [])];
 
-  if (list) {
-    const items = [...list.children] as HTMLElement[];
-    const names = items.map((item) => item.querySelector<HTMLElement>(".slab__name"));
+  if (slab && ghost && names.length) {
+    const still = matchMedia("(prefers-reduced-motion: reduce)");
+    const easing = "cubic-bezier(0.65, 0, 0.35, 1)";
+    const leadIn = 800;
+    let motion: Animation | undefined;
+    let rests: number[] = [];
+    let inside = false;
 
-    const measure = () => {
-      const boxes = names.map((name) => name?.getBoundingClientRect());
+    const frame = (index: number, part: "whole" | "lead" | "tail" | "enter" | "exit") => {
+      const outer = ghost.getBoundingClientRect();
+      const box = names[index].getBoundingClientRect();
+      const em = parseFloat(getComputedStyle(names[index]).fontSize);
+      const bar = 0.18 * em;
+      const top = box.top - outer.top - 0.3 * em;
+      const bottom = outer.bottom - box.bottom - 0.36 * em;
+      let left = box.left - outer.left - 0.4 * em;
+      let right = outer.right - box.right - 0.4 * em;
 
-      items.forEach((item, index) => {
-        const box = boxes[index];
-        const next = boxes[index + 1];
-        const hasNeighbour = box && next && Math.abs(next.top - box.top) < box.height / 2;
+      if (part === "lead") right = outer.width - left - bar;
+      if (part === "tail") left = outer.width - right - bar;
+      if (part === "enter") [left, right] = [0, outer.width];
+      if (part === "exit") [left, right] = [outer.width, 0];
 
-        if (hasNeighbour) {
-          item.style.setProperty("--reach", `calc(${next.left - box.right}px + var(--dash))`);
-          item.style.removeProperty("--pass-to");
-        } else {
-          item.style.setProperty("--reach", "0px");
-          item.style.setProperty("--pass-to", "100%");
-        }
-      });
+      return `inset(${top}px ${right}px ${bottom}px ${left}px)`;
     };
 
-    const observer = new ResizeObserver(measure);
-    observer.observe(list);
-    items.forEach((item) => observer.observe(item));
+    const sameRow = (a: number, b: number) =>
+      Math.abs(names[a].getBoundingClientRect().top - names[b].getBoundingClientRect().top) < 1;
+
+    const cycle = () => {
+      const steps: { clipPath: string; time: number }[] = [];
+      let time = 0;
+      const step = (clipPath: string, duration: number) => steps.push({ clipPath, time: (time += duration) });
+
+      rests = [];
+      step(frame(0, "enter"), 0);
+
+      names.forEach((_, index) => {
+        step(frame(index, "lead"), index === 0 ? 700 : sameRow(index - 1, index) ? 900 : 0);
+        step(frame(index, "whole"), 1000);
+        rests.push(time);
+        step(frame(index, "whole"), 3000);
+        step(frame(index, "tail"), 800);
+      });
+
+      step(frame(names.length - 1, "exit"), 700);
+
+      return {
+        duration: time,
+        keyframes: steps.map((each) => ({ clipPath: each.clipPath, offset: each.time / time, easing })),
+      };
+    };
+
+    const sync = (link = -1) => {
+      if (!motion) return;
+
+      const held = inside || slab.querySelector("a:focus-visible") !== null;
+
+      if (link >= 0) motion.currentTime = leadIn + rests[link];
+      if (still.matches && !held) motion.currentTime = 0;
+      if (held || still.matches) motion.pause();
+      else motion.play();
+    };
+
+    const build = () => {
+      const time = motion?.currentTime ?? 0;
+
+      motion?.cancel();
+      motion = undefined;
+      if (!ghost.offsetWidth) return;
+
+      const { keyframes, duration } = cycle();
+
+      motion = ghost.animate(keyframes, { duration, delay: leadIn, iterations: Infinity });
+      motion.currentTime = time;
+      sync();
+    };
+
+    slab.addEventListener("pointerover", (event) => {
+      if (event.pointerType === "touch") return;
+      inside = true;
+      sync(links.findIndex((link) => link.contains(event.target as Node)));
+    });
+
+    slab.addEventListener("pointerleave", () => {
+      inside = false;
+      sync();
+    });
+
+    slab.addEventListener("focusin", (event) => {
+      sync(links.findIndex((link) => link === event.target && link.matches(":focus-visible")));
+    });
+
+    slab.addEventListener("focusout", () => sync());
+    still.addEventListener("change", () => sync());
+
+    document.fonts.ready.then(() => new ResizeObserver(build).observe(ghost));
   }
 </script>
 
@@ -57,6 +145,7 @@ import { pages, url } from "../site";
     container-type: size;
     flex: 1 0 0;
     min-height: 6.5rem;
+    position: relative;
     border-top: 1px solid rgb(10 24 56 / 0.25);
     background: var(--rib), var(--orange-deep);
     font-size: 0.9375rem;
@@ -71,20 +160,27 @@ import { pages, url } from "../site";
     padding: 1.5rem var(--gutter) 2rem;
   }
 
-  nav {
+  .slab__in > * {
     flex: 1;
+  }
+
+  .slab__ghost {
+    position: absolute;
+    inset: 0;
+    background: var(--pinstripe), var(--surface);
+    clip-path: inset(0 100% 0 0);
+    pointer-events: none;
+  }
+
+  .slab__ghost .slab__name {
+    color: var(--orange-deep);
   }
 
   ul {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    --gap: clamp(1rem, 2.4vw, 2.25rem);
-    --dash: 0.75rem;
-    --reach: calc(var(--gap) + var(--dash));
-    --pass-from: calc(100% - var(--dash));
-    --pass-to: calc(100% - var(--dash));
-    gap: 0.35rem var(--gap);
+    gap: 1rem clamp(1rem, 2.4vw, 2.25rem);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -100,6 +196,7 @@ import { pages, url } from "../site";
 
   .slab__name {
     position: relative;
+    z-index: 0;
     display: inline-block;
     color: var(--paper);
     font-family: var(--font-display);
@@ -112,63 +209,19 @@ import { pages, url } from "../site";
     -webkit-text-stroke: 0.02em currentColor;
   }
 
-  .slab__name::after {
-    content: "";
-    position: absolute;
-    inset: auto calc(-1 * var(--reach)) -0.2em 0;
-    height: 0.08em;
-    background: currentColor;
-    clip-path: inset(0 100% 0 0);
-    pointer-events: none;
-    transition: clip-path 0.2s ease-out;
-    animation: slab-pass 12s ease-in-out calc(0.6s + var(--order) * 2.28s) infinite;
-  }
-
-  li:first-child {
-    --pass-from: 100%;
-  }
-
-  li:last-child {
-    --reach: 0px;
-    --pass-to: 100%;
-  }
-
-  ul:hover .slab__name::after,
-  ul:focus-within .slab__name::after {
-    animation: none;
-  }
-
-  a:hover .slab__name::after {
-    clip-path: inset(0 var(--reach) 0 0);
-  }
-
-  @keyframes slab-pass {
-    0% {
-      clip-path: inset(0 var(--pass-from) 0 0);
+  @container (height < 19rem) {
+    a:hover .slab__name,
+    a:focus-visible .slab__name {
+      color: var(--orange-deep);
     }
 
-    5%,
-    11% {
-      clip-path: inset(0 var(--reach) 0 0);
-    }
-
-    14.5% {
-      clip-path: inset(0 var(--reach) 0 calc(100% - var(--reach) - var(--dash)));
-    }
-
-    19% {
-      clip-path: inset(0 0 0 var(--pass-to));
-    }
-
-    19.01%,
-    100% {
-      clip-path: inset(0 0 0 100%);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .slab__name::after {
-      animation: none;
+    a:hover .slab__name::before,
+    a:focus-visible .slab__name::before {
+      content: "";
+      position: absolute;
+      inset: -0.3em -0.4em -0.36em;
+      z-index: -1;
+      background: var(--pinstripe), var(--surface);
     }
   }
 
@@ -177,8 +230,8 @@ import { pages, url } from "../site";
   }
 
   @container (min-height: 19rem) {
-    .slab__name::after {
-      content: none;
+    .slab__ghost {
+      display: none;
     }
 
     a:hover .slab__name {
