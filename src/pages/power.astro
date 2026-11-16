@@ -1,165 +1,81 @@
 ---
 import Page from "../layouts/Page.astro";
-
-type Span = [number, number];
-
-const modes: { name: string; bearing: number; on: Span[]; text: string }[] = [
-  {
-    name: "manual",
-    bearing: 0.063,
-    on: [[24, 58]],
-    text: "Runs between kiln-vm start and kiln-vm stop. A command sent to a stopped VM is refused.",
-  },
-  {
-    name: "on_demand",
-    bearing: 0.047,
-    on: [
-      [9, 27],
-      [41, 60],
-    ],
-    text: "Stopped until a command needs it, and stopped again after ten idle minutes.",
-  },
-  {
-    name: "warm",
-    bearing: 0.031,
-    on: [
-      [0, 18],
-      [41, 60],
-    ],
-    text: "Starts with the daemon, stops when idle, and wakes on the next command.",
-  },
-  {
-    name: "always",
-    bearing: 0.063,
-    on: [[0, 100]],
-    text: "Starts with the daemon and stays on.",
-  },
-];
-
-const bands = (on: Span[], fill: string) => {
-  const stops: string[] = [];
-  let at = 0;
-  for (const [from, to] of on) {
-    if (from > at) stops.push(`transparent ${at}% ${from}%`);
-    stops.push(`${fill} ${from}% ${to}%`);
-    at = to;
-  }
-  if (at < 100) stops.push(`transparent ${at}% 100%`);
-  return `linear-gradient(90deg, ${stops.join(", ")})`;
-};
 ---
 
 <Page
   path="/power/"
   title="Power | kiln-vm"
-  description="A kiln-vm power mode decides whether a command can wake a VM, whether it starts with the daemon, and whether it stops when idle."
+  description="A kiln-vm power mode decides whether a VM starts with the daemon, whether a command can wake it, and whether it stops when idle."
 >
   <Fragment slot="open">
-    <div class="say open">
-      <div class="say__lead">
-        <h1 class="say__title">Power</h1>
-      </div>
-      <p class="say__text">
-        A VM's power mode decides whether a command can wake it, whether it starts with the daemon, and whether it
-        stops after sitting idle. Each band below is one mode over the same stretch of time. Orange is running.
-      </p>
-    </div>
-  </Fragment>
-
-  {
-    modes.map((mode) => (
-      <section
-        class="mode"
-        style={`--mask:${bands(mode.on, "#000")};--hot:${bands(mode.on, "#f6f8fb")};--bearing:${mode.bearing}em`}
-      >
-        <h2 class="mode__name">{mode.name}</h2>
-        <p class="mode__text">{mode.text}</p>
-      </section>
-    ))
-  }
-
-  <section class="plate plate--panel plate--end">
     <div class="say">
       <div class="say__lead">
-        <h2 class="say__title">What counts as use</h2>
+        <h1 class="say__title">Power</h1>
         <pre class="cmd">kiln-vm power dev --mode on_demand --idle 10m</pre>
       </div>
       <p class="say__text">
-        <code>exec</code>, <code>shell</code>, <code>forward</code>, uploads and downloads wake a VM and restart its
-        idle timer. An open shell or forward keeps it running. Traffic and processes inside the guest don't count, so
-        a VM that only serves requests still stops.
+        A power mode decides when a VM runs. Under <code>manual</code>, the default, you start and stop it yourself,
+        and a stopped VM refuses commands. The other three modes do some of that for you.
       </p>
     </div>
-  </section>
+    <div class="idle" aria-hidden="true">
+      <p class="form form--cold">idle</p>
+      <p class="form form--lit">idle</p>
+    </div>
+  </Fragment>
+
+  <Fragment slot="ground">
+    <div class="notes">
+      <section class="note">
+        <h2 class="note__title">on_demand</h2>
+        <p>
+          Stopped until a command needs it. <code>exec</code>, <code>shell</code>, <code>forward</code>, an upload or a
+          download wakes it. It stops again after ten idle minutes, or the time you give <code>--idle</code>.
+        </p>
+      </section>
+      <section class="note">
+        <h2 class="note__title">warm</h2>
+        <p>
+          Starts with the daemon, so it is running before the first command. After that it stops when idle and wakes
+          on use, like on_demand.
+        </p>
+      </section>
+      <section class="note note--end">
+        <h2 class="note__title">always</h2>
+        <p>
+          Starts with the daemon and never stops for being idle. Traffic and processes inside a guest don't count as
+          use, so a VM that only serves requests needs this mode to stay up.
+        </p>
+      </section>
+    </div>
+  </Fragment>
 </Page>
 
 <style>
-  .open {
-    padding-bottom: clamp(2rem, 4vw, 4rem);
+  .idle {
+    --lamp-width: 0.26em;
+    --lamp-height: 0.3em;
+    display: grid;
   }
 
-  .mode {
-    --em: calc((100cqw - 2 * var(--gutter)) / 6.715);
-    container-type: inline-size;
-    position: relative;
-    display: flex;
-    flex: none;
-    flex-direction: column;
-    overflow: clip;
-    background: var(--pinstripe), var(--surface);
+  .idle .form {
+    --fit: 1.806;
+    --bearing: 0.063em;
+    grid-area: 1 / 1;
   }
 
-  .mode::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: var(--rib), linear-gradient(180deg, var(--orange-at-crop), var(--orange-deep));
-    -webkit-mask-image: var(--mask);
-    mask-image: var(--mask);
+  .idle .form--cold {
+    -webkit-mask:
+      linear-gradient(#000 0 0),
+      linear-gradient(#000 0 0) 0 0 / var(--lamp-width) var(--lamp-height) no-repeat;
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0),
+      linear-gradient(#000 0 0) 0 0 / var(--lamp-width) var(--lamp-height) no-repeat;
+    mask-composite: exclude;
   }
 
-  .mode__text {
-    position: relative;
-    z-index: 1;
-    order: -1;
-    align-self: flex-end;
-    width: calc((100% - 2 * var(--gutter)) * 0.3437);
-    margin: 0 var(--gutter) 0 0;
-    padding: clamp(1.1rem, 1.8vw, 2rem) max(0px, (100% - 2 * var(--gutter)) * 0.3437 - 27rem) 0 0;
-    font-weight: 600;
-  }
-
-  .mode__name {
-    position: relative;
-    margin: 0;
-    padding: 0.2em var(--gutter) 0.3em calc(var(--gutter) - var(--bearing));
-    background-image: var(--rib), var(--hot), var(--moulded);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    font-size: calc((100cqw - 2 * var(--gutter)) / 6.715);
-    line-height: 0.89;
-    letter-spacing: -0.05em;
-    white-space: nowrap;
-  }
-
-  @media (min-width: 104em) {
-    .mode__text {
-      font-size: clamp(1rem, 0.5rem + 0.55vw, 1.375rem);
-    }
-  }
-
-  @media (max-width: 1080px) {
-    .mode__text {
-      align-self: stretch;
-      width: auto;
-      margin: 0;
-      padding: 1.1rem max(var(--gutter), 100% - var(--gutter) - 27rem) 1.2rem var(--gutter);
-      background: var(--pinstripe), var(--surface);
-    }
-
-    .mode__name {
-      padding-top: 0.26em;
-    }
+  .idle .form--lit {
+    clip-path: inset(0 calc(100% - var(--lamp-width)) calc(100% - var(--lamp-height)) 0);
   }
 </style>

@@ -19,71 +19,86 @@ import Page from "../layouts/Page.astro";
     </div>
   </Fragment>
 
-  <section class="plate plate--slab wall">
-    <div class="say">
-      <div class="say__lead">
-        <h2 class="say__title">isolated-web</h2>
-        <pre class="cmd">kiln-vm create web --network-policy isolated-web</pre>
+  <Fragment slot="ground">
+    <div class="wall" aria-hidden="true">
+      <p class="form form--cut ports">80 443</p>
+      <div class="tunnel">
+        <span class="tunnel__slot"></span>
+        <span class="form tunnel__port">3000</span>
       </div>
-      <p class="say__text">
-        Under this policy a guest reaches public IPv4 addresses on TCP ports 80 and 443, and DNS on its own gateway.
-        Other ports, private addresses, the host's services and all IPv6 are dropped.
-      </p>
     </div>
-    <p class="form form--cut ports" aria-hidden="true">80 443</p>
-  </section>
-
-  <section class="plate plate--panel">
-    <div class="say">
-      <div class="say__lead">
-        <h2 class="say__title">Forward</h2>
-        <pre class="cmd">kiln-vm forward dev 3000
-<span>forwarding 127.0.0.1:41873 to port 3000 in dev</span></pre>
-      </div>
-      <p class="say__text">
-        <code>forward</code> listens on a free loopback port on your machine and carries each connection through the
-        daemon to an agent in the guest. It opens no port on the VM, so it works under isolated-web too.
-      </p>
+    <div class="notes">
+      <section class="note">
+        <h2 class="note__title">isolated-web</h2>
+        <pre class="cmd">kiln-vm create web \
+  --network-policy isolated-web</pre>
+        <p>
+          Under this policy a guest reaches public IPv4 addresses on TCP ports 80 and 443, and DNS on its own gateway.
+          Other ports, private addresses, the host's services and all IPv6 are dropped.
+        </p>
+      </section>
+      <section class="note note--end">
+        <h2 class="note__title">Forward</h2>
+        <pre class="cmd">kiln-vm forward dev 3000</pre>
+        <p>
+          <code>forward</code> listens on a free loopback port on your machine and carries each connection through the
+          daemon to an agent in the guest. It opens no port on the VM, so it works under isolated-web too.
+        </p>
+      </section>
     </div>
-    <div class="pipe" aria-hidden="true">
-      <span class="pipe__rod"></span>
-      <span class="form form--lit pipe__port">3000</span>
-    </div>
-  </section>
+  </Fragment>
 </Page>
 
 <style>
   .open {
-    padding-bottom: clamp(2rem, 4vw, 4rem);
+    padding-bottom: clamp(2.25rem, 4.5vw, 4.5rem);
   }
 
   .wall {
-    padding-bottom: clamp(2.5rem, 6vw, 6rem);
+    display: grid;
+    gap: clamp(1.5rem, 4.2cqw, 5rem);
+    padding-top: clamp(2.5rem, 6cqw, 7rem);
   }
 
   .ports {
     --fit: 4.764;
     --bearing: 0.063em;
-    margin-bottom: 0;
-    padding-bottom: 0;
   }
 
-  .pipe {
+  .tunnel {
     display: flex;
     align-items: flex-end;
-    margin-left: calc(-1 * var(--gutter));
-    font-size: calc(100cqw * 0.6 / 3.531);
+    margin: -0.14em 0 -0.24em calc(-1 * var(--gutter));
+    padding: 0.14em 0 0.24em;
+    font-size: calc(100cqw * 0.3437 / 3.531);
+    filter: url(#cut);
   }
 
-  .pipe__rod {
+  .tunnel__slot,
+  .tunnel__port {
+    background-image:
+      linear-gradient(90deg, rgb(10 24 56 / 0.08) 0 1px, rgb(255 255 255 / 0.6) 1px 3px, transparent 3px),
+      linear-gradient(#edf0f5, #edf0f5);
+    background-size:
+      10px 100%,
+      auto;
+  }
+
+  .tunnel__slot {
     flex: 1;
     height: 0.076em;
-    margin: 0 -0.5em 0.355em 0;
-    background: var(--rib), var(--orange);
+    margin: 0 -0.48em 0.352em 0;
   }
 
-  .pipe__port {
+  .tunnel__port {
+    --bearing: 0.063em;
     margin-left: 0;
     font-size: 1em;
+  }
+
+  @media (max-width: 1080px) {
+    .tunnel {
+      font-size: calc(100cqw * 0.56 / 3.531);
+    }
   }
 </style>

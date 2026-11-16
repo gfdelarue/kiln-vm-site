@@ -1,34 +1,31 @@
-.plate {
+.panel,
+.ground {
   container-type: inline-size;
   position: relative;
   display: flex;
   flex: none;
   flex-direction: column;
-  gap: clamp(2.25rem, 4.5vw, 4.5rem);
   overflow: clip;
-  padding: clamp(1.5rem, 2.4vw, 2.8rem) var(--gutter) 0;
+  padding-inline: var(--gutter);
 }
 
-.plate--panel {
+.panel {
+  gap: clamp(2.25rem, 4.5vw, 4.5rem);
+  padding-top: clamp(1.5rem, 2.4vw, 2.8rem);
   background: var(--pinstripe), var(--surface);
 }
 
-.plate--slab {
-  background: var(--rib), linear-gradient(180deg, var(--orange-at-crop), var(--orange-deep));
-}
-
-.plate--fill,
-main > .plate:last-child {
+.panel {
   flex-grow: 1;
 }
 
-.plate--end {
-  padding-bottom: clamp(2.5rem, 5vw, 5rem);
+.panel > .say {
+  margin-bottom: auto;
 }
 
-main > .plate,
-main > .plate ~ * {
-  border-top: 1px solid rgb(10 24 56 / 0.22);
+.ground {
+  border-top: 1px solid rgb(10 24 56 / 0.25);
+  background: var(--rib), linear-gradient(180deg, var(--orange-at-crop), var(--orange-deep));
 }
 
 .say {
@@ -36,10 +33,6 @@ main > .plate ~ * {
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 1.25rem 3rem;
-}
-
-.plate > .say {
-  margin-bottom: auto;
 }
 
 .say__lead {
@@ -50,11 +43,6 @@ main > .plate ~ * {
 }
 
 .say__title {
-  font-size: clamp(1.25rem, 1.05rem + 0.7vw, 1.75rem);
-  line-height: 1.15;
-}
-
-h1.say__title {
   font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2.5rem);
   line-height: 1.05;
 }
@@ -66,11 +54,13 @@ h1.say__title {
   font-weight: 500;
 }
 
-.plate--slab .say__text {
-  font-weight: 600;
+.say__text code,
+.notes code {
+  white-space: nowrap;
 }
 
-.say__text code {
+.say__text a {
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -83,22 +73,50 @@ h1.say__title {
   overflow-wrap: anywhere;
 }
 
-.cmd span {
-  opacity: 0.62;
+.notes {
+  display: grid;
+  grid-template-columns: 34.37% 1fr 34.37%;
+  row-gap: 2.5rem;
+  padding-block: clamp(2.25rem, 4.5vw, 4.5rem);
+  font-weight: 500;
+}
+
+.note {
+  display: grid;
+  align-content: start;
+  gap: 0.7rem;
+  min-width: 0;
+  padding-right: clamp(1.5rem, 3vw, 3rem);
+}
+
+.note--end {
+  grid-column: 3;
+  padding-right: max(0px, 100% - 27rem);
+}
+
+.note__title {
+  font-size: clamp(1.125rem, 1rem + 0.5vw, 1.5rem);
+  line-height: 1.15;
+}
+
+.note p {
+  max-width: 27rem;
+  margin: 0;
 }
 
 .form {
   --fit: 2;
   --bearing: 0.05em;
-  --scale: 1;
+  --shift: 0px;
   display: block;
-  margin: -0.14em -0.06em -0.24em calc(-0.06em - var(--bearing));
+  margin: -0.14em -0.06em -0.24em calc(-0.06em - var(--bearing) - var(--shift));
   padding: 0 0.06em 0.24em;
+  background-position: calc(0.06em + var(--bearing) + var(--shift) - var(--gutter)) 0;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   font-family: var(--font-display);
-  font-size: calc(100cqw / var(--fit) * var(--scale));
+  font-size: calc(100cqw / var(--fit));
   font-weight: 400;
   line-height: 0.89;
   letter-spacing: -0.05em;
@@ -111,29 +129,34 @@ h1.say__title {
   background-image: var(--rib), var(--moulded);
 }
 
-.form--cold {
-  background-image: var(--rib), linear-gradient(180deg, rgb(10 24 56 / 0.2), rgb(10 24 56 / 0.07) 78%);
-  filter: drop-shadow(0 max(1px, 0.011em) 0 #ffffff);
-}
-
-.form--sunk {
-  background-image: var(--rib), linear-gradient(180deg, #c23002, #d93e08 80%);
-  filter: drop-shadow(0 max(1px, 0.011em) 0 rgb(255 158 110 / 0.75));
+.form--pressed {
+  background-image: var(--rib), linear-gradient(180deg, #c93403, #d93f08);
+  filter: url(#pressed);
 }
 
 .form--cut {
   background-image:
-    linear-gradient(180deg, rgb(10 24 56 / 0.2), transparent 16%),
     linear-gradient(90deg, rgb(10 24 56 / 0.08) 0 1px, rgb(255 255 255 / 0.6) 1px 3px, transparent 3px),
-    linear-gradient(180deg, #e9edf3, #ffffff);
+    linear-gradient(180deg, #e4e9f0, #f6f8fb);
   background-size:
-    auto,
     10px 100%,
     auto;
+  filter: url(#cut);
+}
+
+.form--cold {
+  background-image:
+    linear-gradient(90deg, rgb(10 24 56 / 0.08) 0 1px, rgb(255 255 255 / 0.6) 1px 3px, transparent 3px),
+    linear-gradient(180deg, #cfd6e1, #dde3eb);
+  background-size:
+    10px 100%,
+    auto;
+  filter: url(#cold);
 }
 
 @media (min-width: 104em) {
-  .say {
+  .say,
+  .notes {
     font-size: clamp(1rem, 0.5rem + 0.55vw, 1.375rem);
   }
 
@@ -148,11 +171,29 @@ h1.say__title {
     max-width: 27rem;
     padding-right: 0;
   }
+
+  .notes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .note--end {
+    grid-column: auto;
+    padding-right: 0;
+  }
 }
 
 @media (max-width: 44em) {
-  .plate {
+  .panel {
     gap: 2rem;
+  }
+
+  .notes {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 2rem;
+  }
+
+  .note {
+    padding-right: 0;
   }
 }
 

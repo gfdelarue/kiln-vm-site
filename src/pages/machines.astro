@@ -1,14 +1,5 @@
 ---
 import Page from "../layouts/Page.astro";
-
-const profiles = [
-  { name: "alpine", size: "1 vCPU, 512 MB memory, 1 GB disk", note: "What you get without --profile" },
-  { name: "debian", size: "2 vCPUs, 2 GB memory, 8 GB disk" },
-  { name: "ubuntu", size: "2 vCPUs, 2 GB memory, 8 GB disk" },
-  { name: "kali", size: "2 vCPUs, 4 GB memory, 32 GB disk" },
-  { name: "ubuntu-docker", size: "4 vCPUs, 8 GB memory, 64 GB disk", note: "Docker is set up in the image" },
-  { name: "windows11", size: "2 vCPUs, 4 GB memory, 64 GB disk", note: "Prepared from your own install media" },
-];
 ---
 
 <Page
@@ -32,109 +23,40 @@ kiln-vm shell dev</pre>
     <p class="form form--lit dev" aria-hidden="true">dev</p>
   </Fragment>
 
-  <section class="plate plate--panel">
-    <div class="say">
-      <div class="say__lead">
-        <h2 class="say__title">Stopped</h2>
+  <Fragment slot="ground">
+    <div class="notes">
+      <section class="note">
+        <h2 class="note__title">Stopped</h2>
         <pre class="cmd">kiln-vm stop dev
 kiln-vm start dev</pre>
-      </div>
-      <p class="say__text">
-        Stopping a VM frees its CPU and memory. The disk, the name and the address stay, and the next start boots from
-        the same disk.
-      </p>
-    </div>
-    <p class="form form--cold dev" aria-hidden="true">dev</p>
-  </section>
-
-  <section class="plate plate--panel gone">
-    <div class="say">
-      <div class="say__lead">
-        <h2 class="say__title">Deleted</h2>
+        <p>
+          Stopping a VM frees its CPU and memory. The disk, the name and the address stay, and the next start boots
+          from the same disk.
+        </p>
+      </section>
+      <section class="note">
+        <h2 class="note__title">Deleted</h2>
         <pre class="cmd">kiln-vm delete dev</pre>
-      </div>
-      <p class="say__text">
-        Deleting removes the VM and its disk. The guest gets no shutdown first, so stop it yourself if that matters.
-      </p>
+        <p>Deleting removes the VM and its disk. The guest gets no shutdown first, so stop it yourself if that matters.</p>
+      </section>
+      <section class="note note--end">
+        <h2 class="note__title">Profiles</h2>
+        <p>
+          A profile sets the guest image and a default size, from 1 vCPU and 512 MB of memory for alpine to 4 vCPUs
+          and 8 GB for ubuntu-docker. You get alpine without <code>--profile</code>.
+        </p>
+        <p>
+          The others are debian, ubuntu, kali and windows11. ubuntu-docker has Docker set up, and windows11 is prepared
+          from your own install media.
+        </p>
+      </section>
     </div>
-  </section>
-
-  <section class="plate plate--slab plate--end">
-    <div class="say">
-      <div class="say__lead">
-        <h2 class="say__title">Profiles</h2>
-      </div>
-      <p class="say__text">
-        A profile sets the guest image and a default size. <code>--vcpus</code>, <code>--memory-mb</code> and
-        <code>--disk</code> change the size for one VM.
-      </p>
-    </div>
-    <ul class="profiles">
-      {
-        profiles.map((profile) => (
-          <li>
-            <span class="profiles__name">{profile.name}</span>
-            <span>{profile.size}</span>
-            {profile.note && <span class="profiles__note">{profile.note}</span>}
-          </li>
-        ))
-      }
-    </ul>
-  </section>
+  </Fragment>
 </Page>
 
 <style>
   .dev {
     --fit: 2.168;
     --bearing: 0.047em;
-  }
-
-  .gone {
-    min-height: clamp(15rem, 30vw, 32rem);
-  }
-
-  .profiles {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: clamp(1.75rem, 3.5vw, 3.5rem) 2.5rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    font-size: 0.9375rem;
-    font-weight: 600;
-    font-stretch: 85%;
-    font-variation-settings: "wdth" 85;
-    line-height: 1.4;
-  }
-
-  .profiles span {
-    display: block;
-  }
-
-  .profiles__name {
-    margin-bottom: 0.4rem;
-    font-family: var(--font-display);
-    font-size: clamp(1.375rem, 1rem + 1.5vw, 2.25rem);
-    font-weight: 400;
-    font-stretch: 100%;
-    font-variation-settings: normal;
-    letter-spacing: -0.04em;
-    line-height: 1.1;
-  }
-
-  .profiles__note {
-    font-weight: 500;
-  }
-
-  @media (max-width: 62em) {
-    .profiles {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  @media (max-width: 34em) {
-    .profiles {
-      grid-template-columns: minmax(0, 1fr);
-    }
   }
 </style>

@@ -1,0 +1,41 @@
+---
+const reliefs = [
+  { id: "pressed", dir: 1, shade: "#4a1000", shadeOpacity: 0.5, lip: "#ffb086", lipOpacity: 0.55 },
+  { id: "cut", dir: 1, shade: "#0a1838", shadeOpacity: 0.34, lip: "#ffb086", lipOpacity: 0.6 },
+  { id: "cold", dir: 1, shade: "#0a1838", shadeOpacity: 0.26, lip: "#ffffff", lipOpacity: 0.95 },
+];
+const depth = 0.016;
+const edge = 0.004;
+---
+
+<svg class="vh" width="0" height="0" aria-hidden="true" focusable="false">
+  {
+    reliefs.map((relief) => (
+      <filter
+        id={relief.id}
+        x="0"
+        y="-0.05"
+        width="1"
+        height="1.1"
+        primitiveUnits="objectBoundingBox"
+        color-interpolation-filters="sRGB"
+      >
+        <feOffset in="SourceAlpha" dy={relief.dir * depth} result="sunk" />
+        <feComposite in="SourceAlpha" in2="sunk" operator="out" />
+        <feGaussianBlur stdDeviation={`0 ${depth * 0.3}`} />
+        <feComposite in2="SourceAlpha" operator="in" result="wall" />
+        <feFlood flood-color={relief.shade} flood-opacity={relief.shadeOpacity} />
+        <feComposite in2="wall" operator="in" result="shade" />
+        <feOffset in="SourceAlpha" dy={relief.dir * edge} result="lower" />
+        <feComposite in="lower" in2="SourceAlpha" operator="out" result="rim" />
+        <feFlood flood-color={relief.lip} flood-opacity={relief.lipOpacity} />
+        <feComposite in2="rim" operator="in" result="lip" />
+        <feMerge>
+          <feMergeNode in="SourceGraphic" />
+          <feMergeNode in="shade" />
+          <feMergeNode in="lip" />
+        </feMerge>
+      </filter>
+    ))
+  }
+</svg>

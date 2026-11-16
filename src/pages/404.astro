@@ -1,5 +1,6 @@
 ---
 import Page from "../layouts/Page.astro";
+import { url } from "../site";
 ---
 
 <Page path="/404/" title="Page not found | kiln-vm" description="This address does not match a page on the kiln-vm site.">
@@ -8,7 +9,9 @@ import Page from "../layouts/Page.astro";
       <div class="say__lead">
         <h1 class="say__title">Nothing here</h1>
       </div>
-      <p class="say__text">No page lives at this address. The menu above has every page on the site.</p>
+      <p class="say__text">
+        No page lives at this address. <a href={url("/")}>Go to the home page</a>, or pick a page from the menu.
+      </p>
     </div>
     <p class="form form--cold missing" aria-hidden="true">404</p>
   </Fragment>
@@ -18,5 +21,13 @@ import Page from "../layouts/Page.astro";
   .missing {
     --fit: 2.726;
     --bearing: 0.063em;
+  }
+
+  @media (max-width: 44em) {
+    .missing {
+      --fit: 1.15;
+      --shift: calc((2.726 / 1.15 - 1) * 50cqw);
+      width: max-content;
+    }
   }
 </style>

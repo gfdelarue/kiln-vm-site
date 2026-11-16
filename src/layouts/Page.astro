@@ -1,5 +1,6 @@
 ---
 import "../styles/plates.css";
+import Reliefs from "../components/Reliefs.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import TopBar from "../components/TopBar.astro";
 import Base from "./Base.astro";
@@ -11,28 +12,32 @@ interface Props {
 }
 
 const { path, title, description } = Astro.props;
-const solo = !Astro.slots.has("default");
+const grounded = Astro.slots.has("ground");
 ---
 
 <Base title={title} description={description}>
-  <header class:list={["plate", "plate--panel", solo && "plate--fill"]}>
+  <Reliefs />
+  <header class:list={["panel", !grounded && "panel--fill"]}>
     <TopBar path={path} />
     <slot name="open" />
   </header>
   {
-    !solo && (
+    grounded && (
       <main>
         <slot />
+        <div class="ground">
+          <slot name="ground" />
+        </div>
       </main>
     )
   }
-  <SiteFooter path={path} />
+  <SiteFooter path={path} joined={grounded} />
 </Base>
 
 <style>
   main {
     display: flex;
-    flex: 1 0 auto;
+    flex: none;
     flex-direction: column;
   }
 </style>
