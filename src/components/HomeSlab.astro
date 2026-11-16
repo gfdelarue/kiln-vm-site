@@ -7,8 +7,8 @@ import { pages, url } from "../site";
     <nav aria-label="Main">
       <ul>
         {
-          pages.map((page) => (
-            <li>
+          pages.map((page, index) => (
+            <li style={`--order: ${index}`}>
               <a href={url(page.path)}>
                 <span class="slab__name">{page.name}</span>
                 <span class="slab__line">{page.line}</span>
@@ -44,7 +44,12 @@ import { pages, url } from "../site";
   ul {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.35rem clamp(1rem, 2.4vw, 2.25rem);
+    --gap: clamp(1rem, 2.4vw, 2.25rem);
+    --dash: 0.75rem;
+    --reach: calc(var(--gap) + var(--dash));
+    --pass-from: calc(100% - var(--dash));
+    --pass-to: calc(100% - var(--dash));
+    gap: 0.35rem var(--gap);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -54,14 +59,81 @@ import { pages, url } from "../site";
     text-decoration: none;
   }
 
-  a:hover .slab__name {
-    text-decoration: underline;
-    text-decoration-thickness: 1.5px;
-    text-underline-offset: 0.22em;
-  }
-
   a:focus-visible {
     outline-color: var(--ink);
+  }
+
+  .slab__name {
+    position: relative;
+    display: inline-block;
+    color: var(--paper);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 400;
+    font-stretch: 100%;
+    font-variation-settings: normal;
+    letter-spacing: -0.04em;
+    line-height: 1.15;
+  }
+
+  .slab__name::after {
+    content: "";
+    position: absolute;
+    inset: auto calc(-1 * var(--reach)) -0.2em 0;
+    height: 2px;
+    background: currentColor;
+    clip-path: inset(0 100% 0 0);
+    pointer-events: none;
+    transition: clip-path 0.2s ease-out;
+    animation: slab-pass 12s ease-in-out calc(0.6s + var(--order) * 2.22s) infinite;
+  }
+
+  li:first-child {
+    --pass-from: 100%;
+  }
+
+  li:last-child {
+    --reach: 0px;
+    --pass-to: 100%;
+  }
+
+  ul:hover .slab__name::after,
+  ul:focus-within .slab__name::after {
+    animation: none;
+  }
+
+  a:hover .slab__name::after {
+    clip-path: inset(0 var(--reach) 0 0);
+  }
+
+  @keyframes slab-pass {
+    0% {
+      clip-path: inset(0 var(--pass-from) 0 0);
+    }
+
+    5%,
+    11.5% {
+      clip-path: inset(0 var(--reach) 0 0);
+    }
+
+    15.5% {
+      clip-path: inset(0 var(--reach) 0 calc(100% - var(--reach) - var(--dash)));
+    }
+
+    18.5% {
+      clip-path: inset(0 0 0 var(--pass-to));
+    }
+
+    18.51%,
+    100% {
+      clip-path: inset(0 0 0 100%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slab__name::after {
+      animation: none;
+    }
   }
 
   .slab__line {
@@ -69,6 +141,16 @@ import { pages, url } from "../site";
   }
 
   @container (min-height: 19rem) {
+    .slab__name::after {
+      content: none;
+    }
+
+    a:hover .slab__name {
+      text-decoration: underline;
+      text-decoration-thickness: 1.5px;
+      text-underline-offset: 0.22em;
+    }
+
     .slab__in {
       display: block;
       padding-block: clamp(1.25rem, 5cqh, 2.5rem) clamp(1.25rem, 5cqh, 2rem);
@@ -92,13 +174,7 @@ import { pages, url } from "../site";
 
     .slab__name {
       display: block;
-      font-family: var(--font-display);
-      font-size: clamp(1.25rem, 5.4cqh, 1.875rem);
-      font-weight: 400;
-      font-stretch: 100%;
-      font-variation-settings: normal;
-      letter-spacing: -0.04em;
-      line-height: 1.15;
+      font-size: clamp(1.5rem, 5.4cqh, 1.875rem);
     }
 
     .slab__line {
