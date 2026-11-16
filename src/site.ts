@@ -3,7 +3,6 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 export const url = (path: string) => `${base}${path}`;
 
 export const product = "kiln-vm";
-export const status = "Not released yet";
 
 export interface SitePage {
   path: string;

@@ -1,5 +1,5 @@
 ---
-import { pages, product, status, url } from "../site";
+import { pages, product, url } from "../site";
 
 interface Props {
   path: string;
@@ -9,7 +9,6 @@ interface Props {
 const { path, joined = false } = Astro.props;
 const index = pages.findIndex((page) => page.path === path);
 const next = index === -1 ? undefined : pages[index + 1];
-const last = index === pages.length - 1;
 ---
 
 <footer class:list={["foot", joined && "foot--joined"]}>
@@ -23,10 +22,7 @@ const last = index === pages.length - 1;
     )
   }
   <div class="foot__row">
-    <p>
-      <a href={url("/")}>{product}</a>
-      {!last && <span>{status}</span>}
-    </p>
+    <p><a href={url("/")}>{product}</a></p>
     <ul>
       {
         pages.map((page) => (
@@ -105,14 +101,7 @@ const last = index === pages.length - 1;
   }
 
   p {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem 1.25rem;
     margin: 0;
-  }
-
-  p span {
-    font-weight: 500;
   }
 
   ul {

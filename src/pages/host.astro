@@ -1,6 +1,5 @@
 ---
 import Page from "../layouts/Page.astro";
-import { product, status } from "../site";
 ---
 
 <Page
@@ -32,16 +31,12 @@ import { product, status } from "../site";
           guest kernel and the host tools, and warns when disk or memory is short.
         </p>
       </section>
-      <section class="note">
+      <section class="note note--end">
         <h2 class="note__title">How much it runs</h2>
         <p>
           By default, 8 VMs at a time, sharing 8 vCPUs and 8192 MB of memory. Stopped VMs use none of that, so you can
           keep more than you run.
         </p>
-      </section>
-      <section class="note note--end">
-        <h2 class="note__title">{status}</h2>
-        <p>{product} is free and will be open source. There is nothing to install today.</p>
       </section>
     </div>
   </Fragment>
