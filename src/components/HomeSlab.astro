@@ -21,6 +21,37 @@ import { pages, url } from "../site";
   </div>
 </footer>
 
+<script>
+  const list = document.querySelector<HTMLElement>(".slab ul");
+
+  if (list) {
+    const items = [...list.children] as HTMLElement[];
+    const names = items.map((item) => item.querySelector<HTMLElement>(".slab__name"));
+
+    const measure = () => {
+      const boxes = names.map((name) => name?.getBoundingClientRect());
+
+      items.forEach((item, index) => {
+        const box = boxes[index];
+        const next = boxes[index + 1];
+        const hasNeighbour = box && next && Math.abs(next.top - box.top) < box.height / 2;
+
+        if (hasNeighbour) {
+          item.style.setProperty("--reach", `calc(${next.left - box.right}px + var(--dash))`);
+          item.style.removeProperty("--pass-to");
+        } else {
+          item.style.setProperty("--reach", "0px");
+          item.style.setProperty("--pass-to", "100%");
+        }
+      });
+    };
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(list);
+    items.forEach((item) => observer.observe(item));
+  }
+</script>
+
 <style>
   .slab {
     container-type: size;
@@ -36,14 +67,18 @@ import { pages, url } from "../site";
 
   .slab__in {
     display: flex;
-    justify-content: flex-end;
     height: 100%;
     padding: 1.5rem var(--gutter) 2rem;
+  }
+
+  nav {
+    flex: 1;
   }
 
   ul {
     display: flex;
     flex-wrap: wrap;
+    justify-content: space-between;
     --gap: clamp(1rem, 2.4vw, 2.25rem);
     --dash: 0.75rem;
     --reach: calc(var(--gap) + var(--dash));
@@ -68,24 +103,25 @@ import { pages, url } from "../site";
     display: inline-block;
     color: var(--paper);
     font-family: var(--font-display);
-    font-size: 1.5rem;
+    font-size: clamp(1.5rem, 3.1vw, 2.5rem);
     font-weight: 400;
     font-stretch: 100%;
     font-variation-settings: normal;
     letter-spacing: -0.04em;
     line-height: 1.15;
+    -webkit-text-stroke: 0.02em currentColor;
   }
 
   .slab__name::after {
     content: "";
     position: absolute;
     inset: auto calc(-1 * var(--reach)) -0.2em 0;
-    height: 2px;
+    height: 0.08em;
     background: currentColor;
     clip-path: inset(0 100% 0 0);
     pointer-events: none;
     transition: clip-path 0.2s ease-out;
-    animation: slab-pass 12s ease-in-out calc(0.6s + var(--order) * 2.22s) infinite;
+    animation: slab-pass 12s ease-in-out calc(0.6s + var(--order) * 2.28s) infinite;
   }
 
   li:first-child {
@@ -112,19 +148,19 @@ import { pages, url } from "../site";
     }
 
     5%,
-    11.5% {
+    11% {
       clip-path: inset(0 var(--reach) 0 0);
     }
 
-    15.5% {
+    14.5% {
       clip-path: inset(0 var(--reach) 0 calc(100% - var(--reach) - var(--dash)));
     }
 
-    18.5% {
+    19% {
       clip-path: inset(0 0 0 var(--pass-to));
     }
 
-    18.51%,
+    19.01%,
     100% {
       clip-path: inset(0 0 0 100%);
     }
@@ -147,7 +183,7 @@ import { pages, url } from "../site";
 
     a:hover .slab__name {
       text-decoration: underline;
-      text-decoration-thickness: 1.5px;
+      text-decoration-thickness: 2px;
       text-underline-offset: 0.22em;
     }
 
